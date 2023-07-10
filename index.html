@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baat-Cheet</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;1,900&family=Ubuntu&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css"><!-- public/ here -->
+
+</head>
+
+<body style="background-image: url('background3.jpg');"><!-- public/ here -->
+    
+
+
+    <section class="chat-section"> 
+        <div class="brand">
+            <img class="logo" src="logo.png" alt="image"><!-- public/ here -->
+            <h1>Baat-Cheet</h1>
+
+        </div>
+        <div class="message-area">
+        </div>
+        <div class="form-group">
+            <textarea autofocus id="textarea" cols="30" rows="1" placeholder="type your message"></textarea>
+            <button id ="button" class="button">Send <i class="bi bi-send"></i></button>
+        </div>
+        
+    </section>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="ind.js"></script><!-- public/ here -->
+
+</body>
+</html>
