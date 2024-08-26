@@ -11,68 +11,41 @@ app.get("/", function (req, res) {
     res.sendFile(__dirname + "/index.html");
 });
 
-let players = {};
-let currentPlayer = 'X';
+let players = [];
+let playerTurn = 0;
 
 io.on('connection', function (socket) {
-    console.log("A player connected:", socket.id);
+    console.log("connected");
 
-    // Assign player 'X' or 'O'
-    if (!players['X']) {
-        players['X'] = socket.id;
-        socket.emit('player-assigned', { player: 'X', isTurn: true });
-    } else if (!players['O']) {
-        players['O'] = socket.id;
-        socket.emit('player-assigned', { player: 'O', isTurn: false });
+    if (players.length < 2) {
+        let player = players.length === 0 ? 'X' : 'O';
+        players.push({ id: socket.id, player: player });
+        socket.emit('player-assigned', { player: player, isTurn: playerTurn === 0 });
+
+        if (players.length === 2) {
+            io.to(players[0].id).emit('player-assigned', { player: 'X', isTurn: true });
+            io.to(players[1].id).emit('player-assigned', { player: 'O', isTurn: false });
+        }
     } else {
-        socket.emit('spectator');  // If there are already two players, the user becomes a spectator
+        socket.emit('spectator');
     }
 
-    // Handle incoming messages for chat
     socket.on("message", function (msg) {
         socket.broadcast.emit("message", msg);
     });
 
-    // Handle player move
-    socket.on("play", function (data) {
-        if (socket.id === players[currentPlayer]) {
-            socket.broadcast.emit("play", data); // Broadcast the move to the other player
-
-            // Toggle current player
-            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-
-            // Notify both players of whose turn it is
-            io.to(players['X']).emit('turn', { isTurn: currentPlayer === 'X' });
-            io.to(players['O']).emit('turn', { isTurn: currentPlayer === 'O' });
-        }
+    socket.on("play", function (move) {
+        socket.broadcast.emit("play", move); // Broadcast the move to other clients
     });
 
-    // Handle game over
-    socket.on('game-over', function () {
-        io.emit('game-over'); // Notify all players that the game is over
-        currentPlayer = 'X'; // Reset the current player to 'X'
+    socket.on("game-over", function (data) {
+        io.emit("game-over", data); // Emit game-over to all clients
     });
 
-    // Handle game restart
-    socket.on('restart', function () {
-        io.emit('restart'); // Broadcast to restart the game
-        currentPlayer = 'X'; // Reset to 'X' for a new game
-    });
-
-    // Handle player disconnect
     socket.on('disconnect', function () {
-        console.log("A player disconnected:", socket.id);
-
-        // Remove player from the players list
-        if (players['X'] === socket.id) {
-            players['X'] = null;
-        } else if (players['O'] === socket.id) {
-            players['O'] = null;
-        }
-
-        // Reset the game when a player disconnects
-        io.emit('player-disconnected');
-        currentPlayer = 'X';
+        players = players.filter(player => player.id !== socket.id);
+        playerTurn = 0;
+        io.emit('reset');
     });
 });
 
